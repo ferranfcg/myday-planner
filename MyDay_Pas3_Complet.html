@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1A3C5E">
+<title>MyDay Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════
+   VARIABLES
+═══════════════════════════════════════════ */
+:root {
+  --blau-fosc:   #1A3C5E;
+  --blau-mig:    #2E7D9C;
+  --blau:        #1565C0;
+  --verd:        #4CAF82;
+  --verd-fosc:   #2E7D32;
+  --violeta:     #7B1FA2;
+  --taronja:     #E8A020;
+  --vermell:     #B71C1C;
+  --gris:        #666666;
+  --gris-clar:   #F4F6F8;
+  --gris-md:     #C8D0DA;
+  --blanc:       #FFFFFF;
+  --p1:          #D32F2F;
+  --p2:          #E8A020;
+  --p3:          #F9A825;
+  --p4:          #1565C0;
+  --font-t:      'Nunito', sans-serif;
+  --font-c:      'Nunito Sans', sans-serif;
+  --nav-h:       76px;
+  --header-h:    64px;
+  --radius-sm:   8px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-pill: 100px;
+  --ombra-sm:    0 2px 8px rgba(26,60,94,0.10);
+  --ombra-md:    0 4px 18px rgba(26,60,94,0.13);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--gris-clar);
+  font-family: var(--font-c);
+  font-size: 18px;
+  color: var(--blau-fosc);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 1024px;
+  margin: 0 auto;
+  background: var(--blanc);
+  box-shadow: var(--ombra-md);
+}
+
+/* ═══════════════════════════════════════════
+   CAPÇALERA
+═══════════════════════════════════════════ */
+#header {
+  height: var(--header-h);
+  background: var(--blau-fosc);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.logo-wrap { display: flex; align-items: center; gap: 10px; }
+.logo-icon { font-size: 26px; }
+.logo-nom  { font-family: var(--font-t); font-size: 20px; font-weight: 800; color: var(--blanc); }
+.logo-sub  { font-size: 12px; color: rgba(255,255,255,0.5); display: block; margin-top: -3px; }
+
+.header-dreta { display: flex; align-items: center; gap: 12px; }
+
+#header-data { font-size: 14px; color: rgba(255,255,255,0.65); }
+
+#rol-badge {
+  font-size: 12px; font-weight: 700; font-family: var(--font-t);
+  padding: 3px 10px; border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.15); color: var(--blanc);
+}
+#rol-badge.admin { background: rgba(232,160,32,0.25); color: var(--taronja); }
+
+#btn-admin {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  background: transparent; color: rgba(255,255,255,0.45);
+  font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+#btn-admin:active, #btn-admin.actiu {
+  border-color: var(--taronja); color: var(--taronja);
+  background: rgba(232,160,32,0.15);
+}
+
+/* ═══════════════════════════════════════════
+   CONTINGUT
+═══════════════════════════════════════════ */
+#contingut {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 20px calc(var(--nav-h) + 20px);
+}
+#contingut::-webkit-scrollbar { width: 3px; }
+#contingut::-webkit-scrollbar-thumb { background: var(--gris-md); border-radius: 3px; }
+
+.pantalla { display: none; animation: fadeIn 0.2s ease; }
+.pantalla.activa { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════
+   COMPONENTS
+═══════════════════════════════════════════ */
+.pantalla-titol {
+  font-family: var(--font-t); font-size: 24px; font-weight: 800;
+  color: var(--blau-fosc); margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.seccio-titol {
+  font-family: var(--font-t); font-size: 12px; font-weight: 700;
+  color: var(--blau-mig); text-transform: uppercase; letter-spacing: 0.8px;
+  margin: 20px 0 8px;
+}
+
+.card {
+  background: var(--blanc); border-radius: var(--radius-md);
+  padding: 16px; box-shadow: var(--ombra-sm);
+  border: 1px solid rgba(26,60,94,0.07); margin-bottom: 10px;
+}
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 14px 20px; border-radius: var(--radius-pill);
+  font-family: var(--font-t); font-size: 17px; font-weight: 700;
+  cursor: pointer; border: none; transition: all 0.18s; min-height: 52px;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primari  { background: var(--blau-fosc); color: var(--blanc); }
+.btn-secundari{ background: var(--gris-clar); color: var(--blau-fosc); border: 1.5px solid var(--gris-md); }
+.btn-verd     { background: var(--verd);    color: var(--blanc); }
+.btn-taronja  { background: var(--taronja); color: var(--blanc); }
+.btn-vermell  { background: var(--vermell); color: var(--blanc); }
+.btn-ple      { width: 100%; }
+
+.input-gran {
+  width: 100%; padding: 14px 16px; font-size: 17px; font-family: var(--font-c);
+  border: 2px solid var(--gris-md); border-radius: var(--radius-md);
+  background: var(--blanc); color: var(--blau-fosc); outline: none;
+  transition: border-color 0.18s; min-height: 52px;
+}
+.input-gran:focus { border-color: var(--blau-mig); }
+
+.checkbox-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 0; cursor: pointer;
+  border-bottom: 1px solid var(--gris-clar);
+}
+.checkbox-item:last-child { border-bottom: none; }
+.checkbox-item input[type="checkbox"] {
+  width: 30px; height: 30px; min-width: 30px;
+  cursor: pointer; accent-color: var(--verd);
+}
+.checkbox-item .cb-label { font-size: 17px; font-weight: 600; flex: 1; line-height: 1.3; }
+.checkbox-item.fet .cb-label { text-decoration: line-through; color: var(--gris); font-weight: 400; }
+
+.prioritat-dot { width: 12px; height: 12px; min-width: 12px; border-radius: 50%; display: inline-block; }
+.p1-dot { background: var(--p1); }
+.p2-dot { background: var(--p2); }
+.p3-dot { background: var(--p3); }
+.p4-dot { background: var(--p4); }
+
+.badge {
+  font-size: 12px; padding: 3px 10px; border-radius: var(--radius-pill);
+  font-weight: 700; font-family: var(--font-t); display: inline-block;
+}
+.badge-p1 { background: rgba(211,47,47,0.12);  color: var(--p1); }
+.badge-p2 { background: rgba(232,160,32,0.15); color: var(--p2); }
+.badge-p3 { background: rgba(249,168,37,0.12); color: #9A7200; }
+.badge-p4 { background: rgba(21,101,192,0.10); color: var(--p4); }
+.badge-verd { background: rgba(76,175,130,0.15); color: var(--verd-fosc); }
+.badge-gris { background: var(--gris-clar); color: var(--gris); }
+
+.loader {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 40px; gap: 14px; color: var(--gris); font-size: 15px;
+}
+.spinner {
+  width: 34px; height: 34px; border: 3px solid var(--gris-md);
+  border-top-color: var(--blau-mig); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.estat-buit { text-align: center; padding: 40px 20px; color: var(--gris); }
+.estat-buit .buit-icon { font-size: 48px; margin-bottom: 12px; }
+.estat-buit .buit-text { font-size: 17px; font-weight: 600; }
+.estat-buit .buit-sub  { font-size: 15px; margin-top: 6px; opacity: 0.7; }
+
+.divider { height: 1px; background: var(--gris-clar); margin: 16px 0; }
+
+.fila-accio {
+  display: flex; gap: 10px; margin-top: 16px;
+}
+
+/* ═══════════════════════════════════════════
+   NAVIGACIÓ INFERIOR
+═══════════════════════════════════════════ */
+#nav-inferior {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1024px;
+  height: var(--nav-h);
+  background: var(--blanc);
+  border-top: 1px solid var(--gris-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 100;
+  box-shadow: 0 -4px 20px rgba(26,60,94,0.08);
+}
+
+.nav-btn {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 4px; flex: 1; height: 100%;
+  cursor: pointer; background: none; border: none;
+  color: var(--gris); transition: all 0.18s; position: relative;
+}
+.nav-btn .nav-icon { font-size: 24px; line-height: 1; }
+.nav-btn .nav-label { font-family: var(--font-t); font-size: 11px; font-weight: 700; }
+.nav-btn.actiu { color: var(--blau-fosc); }
+.nav-btn.actiu::after {
+  content: ''; position: absolute; top: 0; left: 20%; right: 20%;
+  height: 3px; background: var(--blau-fosc); border-radius: 0 0 3px 3px;
+}
+.nav-btn:active { transform: scale(0.93); }
+
+/* ═══════════════════════════════════════════
+   MODAL PIN ADMIN
+═══════════════════════════════════════════ */
+#modal-pin {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  background: rgba(26,60,94,0.6); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+}
+#modal-pin.obert { display: flex; }
+
+.modal-box {
+  background: var(--blanc); border-radius: var(--radius-lg);
+  padding: 32px 28px; width: 90%; max-width: 380px;
+  box-shadow: var(--ombra-md); text-align: center;
+}
+.modal-box h2 { font-family: var(--font-t); font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.modal-box p  { font-size: 15px; color: var(--gris); margin-bottom: 24px; }
+
+.pin-display {
+  display: flex; justify-content: center; gap: 12px; margin-bottom: 24px;
+}
+.pin-digit {
+  width: 52px; height: 60px; border-radius: var(--radius-md);
+  border: 2px solid var(--gris-md); font-family: var(--font-t);
+  font-size: 28px; font-weight: 800; text-align: center;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--gris-clar); color: var(--blau-fosc);
+  transition: all 0.15s;
+}
+.pin-digit.ple { border-color: var(--blau-mig); background: var(--blanc); }
+.pin-digit.error-pin { border-color: var(--vermell); background: rgba(183,28,28,0.05); }
+
+.pin-teclat {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  margin-bottom: 16px;
+}
+.pin-tecla {
+  height: 60px; border-radius: var(--radius-md); border: 1.5px solid var(--gris-md);
+  background: var(--blanc); font-family: var(--font-t); font-size: 22px;
+  font-weight: 700; cursor: pointer; transition: all 0.15s; color: var(--blau-fosc);
+}
+.pin-tecla:active { background: var(--gris-clar); transform: scale(0.95); }
+.pin-tecla.esborrar { font-size: 18px; color: var(--gris); }
+.pin-error { color: var(--vermell); font-size: 14px; font-weight: 600; margin-bottom: 12px; min-height: 20px; }
+
+#btn-cancel-pin {
+  background: none; border: none; color: var(--gris); font-size: 15px;
+  cursor: pointer; font-family: var(--font-c); text-decoration: underline;
+}
+
+/* ═══════════════════════════════════════════
+   TOAST NOTIFICACIÓ
+═══════════════════════════════════════════ */
+#toast {
+  position: fixed; bottom: calc(var(--nav-h) + 16px); left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--blau-fosc); color: var(--blanc);
+  padding: 12px 22px; border-radius: var(--radius-pill);
+  font-size: 15px; font-weight: 600; font-family: var(--font-t);
+  z-index: 500; opacity: 0; pointer-events: none;
+  transition: all 0.3s ease; white-space: nowrap;
+  box-shadow: var(--ombra-md);
+}
+#toast.visible {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+#toast.toast-ok     { background: var(--verd-fosc); }
+#toast.toast-error  { background: var(--vermell); }
+#toast.toast-avís   { background: var(--taronja); }
+
+/* ═══════════════════════════════════════════
+   PANTALLA TODAY — esquelet
+═══════════════════════════════════════════ */
+.today-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 700px) {
+  .today-grid { grid-template-columns: 1fr 280px; }
+}
+
+.today-resum {
+  background: linear-gradient(135deg, var(--blau-fosc) 0%, var(--blau-mig) 100%);
+  border-radius: var(--radius-lg); padding: 20px; color: var(--blanc);
+  margin-bottom: 14px;
+}
+.today-resum .data-gran {
+  font-family: var(--font-t); font-size: 14px; font-weight: 600;
+  opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.today-resum .salutacio {
+  font-family: var(--font-t); font-size: 26px; font-weight: 800; margin: 4px 0 12px;
+}
+.today-stats {
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+.today-stat {
+  display: flex; flex-direction: column;
+  background: rgba(255,255,255,0.15); border-radius: var(--radius-sm);
+  padding: 8px 14px; min-width: 80px;
+}
+.today-stat .stat-num { font-family: var(--font-t); font-size: 26px; font-weight: 800; }
+.today-stat .stat-label { font-size: 12px; opacity: 0.8; }
+
+.agenda-lateral {
+  background: var(--gris-clar); border-radius: var(--radius-md);
+  padding: 14px; min-height: 200px;
+}
+.agenda-titol {
+  font-family: var(--font-t); font-size: 14px; font-weight: 700;
+  color: var(--blau-mig); text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+.agenda-slot {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px solid var(--gris-md);
+}
+.agenda-slot:last-child { border-bottom: none; }
+.agenda-hora { font-size: 13px; font-weight: 700; color: var(--blau-mig); min-width: 42px; }
+.agenda-nom  { font-size: 14px; line-height: 1.3; }
+.agenda-tipus-dot {
+  width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════
+   PANTALLA PENDENTS — filtres
+═══════════════════════════════════════════ */
+.filtres-wrap {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.filtre-btn {
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  border: 1.5px solid var(--gris-md); background: var(--blanc);
+  font-family: var(--font-t); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s; color: var(--gris);
+}
+.filtre-btn.actiu {
+  background: var(--blau-fosc); color: var(--blanc); border-color: var(--blau-fosc);
+}
+
+/* ═══════════════════════════════════════════
+   PANTALLA PLANIFICAR — constructor
+═══════════════════════════════════════════ */
+.planificar-element {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: var(--radius-md);
+  border: 1.5px solid var(--gris-md); margin-bottom: 8px;
+  background: var(--blanc); cursor: grab;
+}
+.planificar-element .element-icon { font-size: 20px; }
+.planificar-element .element-nom  { flex: 1; font-size: 16px; font-weight: 600; }
+.planificar-hores {
+  display: flex; gap: 8px; align-items: center;
+}
+.hora-input {
+  width: 80px; padding: 6px 10px; font-size: 15px; font-family: var(--font-c);
+  border: 1.5px solid var(--gris-md); border-radius: var(--radius-sm);
+  text-align: center; outline: none;
+}
+.hora-input:focus { border-color: var(--blau-mig); }
+
+/* ═══════════════════════════════════════════
+   PANTALLA MEDICACIÓ
+═══════════════════════════════════════════ */
+.medicacio-franja {
+  border-radius: var(--radius-md); padding: 16px;
+  margin-bottom: 12px; border: 1.5px solid transparent;
+}
+.franja-mati   { background: rgba(255,249,196,0.5); border-color: rgba(249,168,37,0.3); }
+.franja-migdia { background: rgba(227,242,253,0.5); border-color: rgba(46,125,156,0.3); }
+.franja-nit    { background: rgba(232,234,246,0.5); border-color: rgba(123,31,162,0.3); }
+.franja-titol  { font-family: var(--font-t); font-size: 16px; font-weight: 800; margin-bottom: 10px; }
+
+/* ═══════════════════════════════════════════
+   PANTALLA RESUM — estadístiques
+═══════════════════════════════════════════ */
+.stat-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+}
+.stat-card {
+  background: var(--gris-clar); border-radius: var(--radius-md);
+  padding: 16px; text-align: center;
+}
+.stat-card .s-num   { font-family: var(--font-t); font-size: 36px; font-weight: 800; color: var(--blau-fosc); }
+.stat-card .s-label { font-size: 13px; color: var(--gris); margin-top: 2px; }
+
+/* ═══════════════════════════════════════════
+   PANTALLA RECOMPENSES
+═══════════════════════════════════════════ */
+.recompensa-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px; border-radius: var(--radius-md);
+  border: 1.5px solid var(--gris-md); margin-bottom: 10px;
+  background: var(--blanc);
+}
+.recompensa-card.desbloquejada { border-color: var(--verd); background: rgba(76,175,130,0.05); }
+.recompensa-card .rec-icon { font-size: 36px; }
+.recompensa-card .rec-nom  { font-size: 17px; font-weight: 700; }
+.recompensa-card .rec-pts  { font-size: 13px; color: var(--gris); margin-top: 2px; }
+
+/* ═══════════════════════════════════════════
+   PANTALLA CONFIG (admin)
+═══════════════════════════════════════════ */
+.config-grup {
+  background: var(--gris-clar); border-radius: var(--radius-md);
+  padding: 16px; margin-bottom: 14px;
+}
+.config-grup-titol {
+  font-family: var(--font-t); font-size: 14px; font-weight: 700;
+  color: var(--gris); text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+.config-fila {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--gris-md);
+}
+.config-fila:last-child { border-bottom: none; }
+.config-fila .cf-label { font-size: 16px; font-weight: 600; }
+.config-fila .cf-valor { font-size: 15px; color: var(--gris); }
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — mòbil petit
+═══════════════════════════════════════════ */
+@media (max-width: 400px) {
+  #contingut { padding: 14px 14px calc(var(--nav-h) + 14px); }
+  .pantalla-titol { font-size: 20px; }
+  .btn { font-size: 15px; padding: 12px 16px; min-height: 48px; }
+  .nav-btn .nav-label { font-size: 10px; }
+}
+</style>
+</head>
+
+<body>
+<div id="app">
+
+  <!-- ═══════════════ CAPÇALERA ═══════════════ -->
+  <header id="header">
+    <div class="logo-wrap">
+      <span class="logo-icon">📅</span>
+      <div>
+        <span class="logo-nom">MyDay</span>
+        <span class="logo-sub" id="header-data"></span>
+      </div>
+    </div>
+    <div class="header-dreta">
+      <span id="rol-badge">Carles</span>
+      <button id="btn-admin" title="Accés administrador" onclick="obrirModalPin()">⚙️</button>
+    </div>
+  </header>
+
+  <!-- ═══════════════ CONTINGUT ═══════════════ -->
+  <main id="contingut">
+
+    <!-- ── TODAY ── -->
+    <section id="screen-today" class="pantalla activa">
+      <div class="pantalla-titol"><span class="titol-icon">🏠</span> Avui</div>
+
+      <div id="today-resum-wrap">
+        <div class="today-resum">
+          <div class="data-gran" id="today-data-gran"></div>
+          <div class="salutacio" id="today-salutacio">Bon dia, Carles!</div>
+          <div class="today-stats">
+            <div class="today-stat">
+              <span class="stat-num" id="today-tasques-num">—</span>
+              <span class="stat-label">Tasques</span>
+            </div>
+            <div class="today-stat">
+              <span class="stat-num" id="today-habits-num">—</span>
+              <span class="stat-label">Hàbits</span>
+            </div>
+            <div class="today-stat">
+              <span class="stat-num" id="today-punts-num">—</span>
+              <span class="stat-label">Punts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="today-grid">
+        <div>
+          <div class="seccio-titol">Day plan d'avui</div>
+          <div id="today-dayplan-wrap">
+            <div class="loader"><div class="spinner"></div>Carregant...</div>
+          </div>
+
+          <div class="seccio-titol">Tasques prioritàries</div>
+          <div id="today-tasques-wrap">
+            <div class="loader"><div class="spinner"></div>Carregant...</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="seccio-titol">Agenda del dia</div>
+          <div class="agenda-lateral" id="today-agenda-wrap">
+            <div class="estat-buit">
+              <div class="buit-icon">🗓️</div>
+              <div class="buit-text">Cap horari planificat</div>
+              <div class="buit-sub">Planifica aquesta nit</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── DIA ── -->
+    <section id="screen-dia" class="pantalla">
+      <div class="pantalla-titol"><span class="titol-icon">📋</span> Dia</div>
+
+      <div class="seccio-titol">Tasques d'avui</div>
+      <div id="dia-tasques-wrap">
+        <div class="loader"><div class="spinner"></div>Carregant...</div>
+      </div>
+
+      <div class="fila-accio">
+        <button class="btn btn-primari btn-ple" onclick="obrirAfegirTasca()">
+          + Afegir tasca d'avui
+        </button>
+      </div>
+    </section>
+
+    <!-- ── PENDENTS ── -->
+    <section id="screen-pendents" class="pantalla">
+      <div class="pantalla-titol"><span class="titol-icon">📌</span> Pendents</div>
+
+      <div class="filtres-wrap" id="filtres-prioritat">
+        <button class="filtre-btn actiu" data-filtre="tots" onclick="filtrarTasques(this)">Tots</button>
+        <button class="filtre-btn" data-filtre="p1" onclick="filtrarTasques(this)">🔴 Ara</button>
+        <button class="filtre-btn" data-filtre="p2" onclick="filtrarTasques(this)">🟠 Aviat</button>
+        <button class="filtre-btn" data-filtre="p3" onclick="filtrarTasques(this)">🟡 Important</button>
+        <button class="filtre-btn" data-filtre="p4" onclick="filtrarTasques(this)">🔵 Quan pugui</button>
+      </div>
+
+      <div class="filtres-wrap" id="filtres-responsabilitat">
+        <button class="filtre-btn actiu" data-filtre-r="tots" onclick="filtrarResponsabilitat(this)">Tothom</button>
+        <button class="filtre-btn" data-filtre-r="Carles" onclick="filtrarResponsabilitat(this)">👤 Carles</button>
+        <button class="filtre-btn" data-filtre-r="Ferran" onclick="filtrarResponsabilitat(this)">🛡️ Ferran</button>
+      </div>
+
+      <div id="pendents-wrap">
+        <div class="loader"><div class="spinner"></div>Carregant...</div>
+      </div>
+
+      <div class="fila-accio">
+        <button class="btn btn-primari btn-ple" onclick="obrirAfegirTasca()">
+          + Nova tasca pendent
+        </button>
+      </div>
+    </section>
+
+    <!-- ── PLANIFICAR ── -->
+    <section id="screen-planificar" class="pantalla">
+      <div class="pantalla-titol"><span class="titol-icon">🌙</span> Planificar</div>
+
+      <div class="card" style="background: linear-gradient(135deg,#1A3C5E,#2E7D9C); color:white; margin-bottom:16px;">
+        <div style="font-family:var(--font-t); font-size:14px; opacity:0.8; margin-bottom:4px;">Planificant el dia</div>
+        <div style="font-family:var(--font-t); font-size:22px; font-weight:800;" id="planificar-dia-titol">—</div>
+        <div style="font-size:13px; opacity:0.7; margin-top:4px;">Construeix l'horari del dia següent</div>
+      </div>
+
+      <div class="seccio-titol">Elements del day plan</div>
+      <div id="planificar-elements-wrap">
+        <div class="estat-buit">
+          <div class="buit-icon">➕</div>
+          <div class="buit-text">Cap element afegit</div>
+          <div class="buit-sub">Afegeix tasques, compromisos o hàbits</div>
+        </div>
+      </div>
+
+      <div class="seccio-titol">Afegir al day plan</div>
+      <div class="fila-accio" style="flex-direction:column; gap:8px;">
+        <button class="btn btn-secundari btn-ple" onclick="obrirSeleccioTasquesPendents()">
+          📌 Tasca de la llista de pendents
+        </button>
+        <button class="btn btn-secundari btn-ple" onclick="obrirNovaTascaPlanificar()">
+          ✏️ Tasca nova (no estava a la llista)
+        </button>
+        <button class="btn btn-secundari btn-ple" onclick="obrirSeleccioHabits()">
+          💪 Hàbit amb franja horària
+        </button>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="btn btn-verd btn-ple" id="btn-desar-dayplan" onclick="desarDayPlan()" style="margin-top:8px;">
+        ✅ Desar day plan
+      </button>
+    </section>
+
+    <!-- ── MEDICACIÓ ── -->
+    <section id="screen-medicacio" class="pantalla">
+      <div class="pantalla-titol"><span class="titol-icon">💊</span> Medicació</div>
+
+      <div id="medicacio-mati" class="medicacio-franja franja-mati">
+        <div class="franja-titol">☀️ Matí</div>
+        <div class="medicacio-llista-wrap" id="med-mati-wrap">
+          <div class="loader"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <div id="medicacio-migdia" class="medicacio-franja franja-migdia">
+        <div class="franja-titol">🌤️ Migdia</div>
+        <div class="medicacio-llista-wrap" id="med-migdia-wrap">
+          <div class="loader"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <div id="medicacio-nit" class="medicacio-franja franja-nit">
+        <div class="franja-titol">🌙 Nit</div>
+        <div class="medicacio-llista-wrap" id="med-nit-wrap">
+          <div class="loader"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Edició estructura: només Ferran -->
+      <div id="medicacio-admin-wrap" style="display:none; margin-top:16px;">
+        <div class="divider"></div>
+        <div class="seccio-titol">⚙️ Gestió de medicació (admin)</div>
+        <button class="btn btn-taronja btn-ple" onclick="obrirGestioMedicacio()">
+          Editar estructura de medicació
+        </button>
+      </div>
+    </section>
+
+    <!-- ── HÀBITS ── -->
+    <section id="screen-habits" class="pantalla">
+      <div class="pantalla-titol"><span class="titol-icon">✅</span> Hàbits</div>
+
+      <div class="card today-resum" style="margin-bottom:14px;">
+        <div class="data-gran">Ratxa actual</div>
+        <div style="font-family:var(--font-t); font-size:40px; font-weight:800; margin:4px 0;">
+          <span id="habits-ratxa-num">—</span>
+          <span style="font-size:18px; opacity:0.8;"> dies</span>
+        </div>
+      </div>
+
+      <div class="seccio-titol">Hàbits d'avui</div>
+      <div id="habits-wrap">
+        <div class="loader"><div class="spinner"></div>Carregant...</div>
+      </div>
+    </section>
+
+    <!-- ── DESITJOS ── -->
+    <section id="screen-desitjos" class="pantalla">
+      <div class="pantalla-titol"><span class="titol-icon">✨</span> Desitjos</div>
+
+      <div id="desitjos-wrap">
+        <div class="loader"><div class="spinner"></div>Carregant...</div>
+      </div>
+
+      <div class="fila-accio" id="desitjos-accio-wrap">
+        <button class="btn btn-primari btn-ple" onclick="obrirAfegirDesig()">
+          + Afegir desig
+        </button>
+      </div>
+    </section>
+
+    <!-- ── RESUM ── -->
+    <section id="screen-resum" class="pantalla">
+      <div class="pantalla-titol"><span class="titol-icon">📊</span> Resum</div>
+
+      <div class="filtres-wrap">
+        <button class="filtre-btn actiu" data-periode="setmana" onclick="canviarPeriode(this)">Setmana</button>
+        <button class="filtre-btn" data-periode="mes" onclick="canviarPeriode(this)">Mes</button>
+      </div>
+
+      <div class="stat-grid" id="resum-stats-wrap">
+        <div class="stat-card">
+          <div class="s-num" id="resum-tasques">—</div>
+          <div class="s-label">Tasques fetes</div>
+        </div>
+        <div class="stat-card">
+          <div class="s-num" id="resum-habits">—</div>
+          <div class="s-label">Hàbits completats</div>
+        </div>
+        <div class="stat-card">
+          <div class="s-num" id="resum-punts">—</div>
+          <div class="s-label">Punts guanyats</div>
+        </div>
+        <div class="stat-card">
+          <div class="s-num" id="resum-ratxa">—</div>
+          <div class="s-label">Ratxa actual (dies)</div>
+        </div>
+      </div>
+
+      <div id="resum-detall-wrap"></div>
+    </section>
+
+    <!-- ── RECOMPENSES ── -->
+    <section id="screen-recompenses" class="pantalla">
+      <div class="pantalla-titol"><span class="titol-icon">🏆</span> Recompenses</div>
+
+      <div class="card" style="background:linear-gradient(135deg,#B71C1C,#E53935); color:white; margin-bottom:16px; text-align:center;">
+        <div style="font-size:13px; opacity:0.8; margin-bottom:4px;">Punts totals acumulats</div>
+        <div style="font-family:var(--font-t); font-size:52px; font-weight:800; line-height:1;" id="recompenses-punts-total">—</div>
+        <div style="font-size:13px; opacity:0.7; margin-top:4px;">⭐ punts</div>
+      </div>
+
+      <div class="seccio-titol">Recompenses disponibles</div>
+      <div id="recompenses-wrap">
+        <div class="loader"><div class="spinner"></div>Carregant...</div>
+      </div>
+    </section>
+
+    <!-- ── CONFIG (admin) ── -->
+    <section id="screen-config" class="pantalla">
+      <div class="pantalla-titol"><span class="titol-icon">⚙️</span> Configuració</div>
+
+      <div class="config-grup">
+        <div class="config-grup-titol">Dades de l'usuari</div>
+        <div id="config-dades-wrap">
+          <div class="loader"><div class="spinner"></div>Carregant...</div>
+        </div>
+      </div>
+
+      <div class="config-grup">
+        <div class="config-grup-titol">Medicació</div>
+        <button class="btn btn-taronja btn-ple" onclick="navegarA('medicacio')">
+          Gestionar medicació →
+        </button>
+      </div>
+
+      <div class="config-grup">
+        <div class="config-grup-titol">Sessió</div>
+        <button class="btn btn-secundari btn-ple" onclick="tancarSessioAdmin()">
+          Tancar sessió admin
+        </button>
+      </div>
+    </section>
+
+  </main><!-- /contingut -->
+
+  <!-- ═══════════════ NAVEGACIÓ INFERIOR ═══════════════ -->
+  <nav id="nav-inferior">
+    <button class="nav-btn actiu" data-screen="today" onclick="navegarA('today', this)">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Avui</span>
+    </button>
+    <button class="nav-btn" data-screen="dia" onclick="navegarA('dia', this)">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">Dia</span>
+    </button>
+    <button class="nav-btn" data-screen="pendents" onclick="navegarA('pendents', this)">
+      <span class="nav-icon">📌</span>
+      <span class="nav-label">Pendents</span>
+    </button>
+    <button class="nav-btn" data-screen="planificar" onclick="navegarA('planificar', this)">
+      <span class="nav-icon">🌙</span>
+      <span class="nav-label">Planificar</span>
+    </button>
+    <button class="nav-btn" data-screen="mes" onclick="obrirMenuMes(this)">
+      <span class="nav-icon">⋯</span>
+      <span class="nav-label">Més</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ═══════════════ MODAL PIN ═══════════════ -->
+<div id="modal-pin">
+  <div class="modal-box">
+    <h2>🛡️ Accés admin</h2>
+    <p>Introdueix el PIN de 4 dígits per accedir a la configuració</p>
+
+    <div class="pin-display">
+      <div class="pin-digit" id="pin-d1"></div>
+      <div class="pin-digit" id="pin-d2"></div>
+      <div class="pin-digit" id="pin-d3"></div>
+      <div class="pin-digit" id="pin-d4"></div>
+    </div>
+
+    <div class="pin-error" id="pin-error-msg"></div>
+
+    <div class="pin-teclat">
+      <button class="pin-tecla" onclick="pinTecla('1')">1</button>
+      <button class="pin-tecla" onclick="pinTecla('2')">2</button>
+      <button class="pin-tecla" onclick="pinTecla('3')">3</button>
+      <button class="pin-tecla" onclick="pinTecla('4')">4</button>
+      <button class="pin-tecla" onclick="pinTecla('5')">5</button>
+      <button class="pin-tecla" onclick="pinTecla('6')">6</button>
+      <button class="pin-tecla" onclick="pinTecla('7')">7</button>
+      <button class="pin-tecla" onclick="pinTecla('8')">8</button>
+      <button class="pin-tecla" onclick="pinTecla('9')">9</button>
+      <button class="pin-tecla" onclick="pinTecla('')"></button>
+      <button class="pin-tecla" onclick="pinTecla('0')">0</button>
+      <button class="pin-tecla esborrar" onclick="pinEsborrar()">⌫</button>
+    </div>
+
+    <button id="btn-cancel-pin" onclick="tancarModalPin()">Cancel·lar</button>
+  </div>
+</div>
+
+<!-- ═══════════════ MENÚ "MÉS" ═══════════════ -->
+<div id="menu-mes" style="
+  display:none; position:fixed; bottom:calc(var(--nav-h) + 8px); right:16px;
+  background:var(--blanc); border-radius:var(--radius-lg); padding:8px;
+  box-shadow:var(--ombra-md); border:1px solid var(--gris-md); z-index:200;
+  min-width:200px;">
+  <button class="nav-btn" style="flex-direction:row; justify-content:flex-start; height:auto; padding:12px 14px; gap:12px; width:100%; border-radius:var(--radius-md);" onclick="navegarA('habits'); tancarMenuMes()">
+    <span class="nav-icon">✅</span><span style="font-size:15px; font-weight:600;">Hàbits</span>
+  </button>
+  <button class="nav-btn" style="flex-direction:row; justify-content:flex-start; height:auto; padding:12px 14px; gap:12px; width:100%; border-radius:var(--radius-md);" onclick="navegarA('medicacio'); tancarMenuMes()">
+    <span class="nav-icon">💊</span><span style="font-size:15px; font-weight:600;">Medicació</span>
+  </button>
+  <button class="nav-btn" style="flex-direction:row; justify-content:flex-start; height:auto; padding:12px 14px; gap:12px; width:100%; border-radius:var(--radius-md);" onclick="navegarA('desitjos'); tancarMenuMes()">
+    <span class="nav-icon">✨</span><span style="font-size:15px; font-weight:600;">Desitjos</span>
+  </button>
+  <button class="nav-btn" style="flex-direction:row; justify-content:flex-start; height:auto; padding:12px 14px; gap:12px; width:100%; border-radius:var(--radius-md);" onclick="navegarA('resum'); tancarMenuMes()">
+    <span class="nav-icon">📊</span><span style="font-size:15px; font-weight:600;">Resum</span>
+  </button>
+  <button class="nav-btn" style="flex-direction:row; justify-content:flex-start; height:auto; padding:12px 14px; gap:12px; width:100%; border-radius:var(--radius-md);" onclick="navegarA('recompenses'); tancarMenuMes()">
+    <span class="nav-icon">🏆</span><span style="font-size:15px; font-weight:600;">Recompenses</span>
+  </button>
+  <div id="menu-mes-config" style="display:none;">
+    <div style="height:1px; background:var(--gris-md); margin:4px 8px;"></div>
+    <button class="nav-btn" style="flex-direction:row; justify-content:flex-start; height:auto; padding:12px 14px; gap:12px; width:100%; border-radius:var(--radius-md);" onclick="navegarA('config'); tancarMenuMes()">
+      <span class="nav-icon">⚙️</span><span style="font-size:15px; font-weight:600; color:var(--taronja);">Configuració</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════ TOAST ═══════════════ -->
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT — Nucli de la SPA
+════════════════════════════════════════════════════════ -->
+<script>
+
+// ── CONFIGURACIÓ ──────────────────────────────────────────
+// IMPORTANT: substitueix aquesta URL per la del teu desplegament Apps Script
+const SCRIPT_URL = 'ENGANXA_AQUÍ_LA_URL_DEL_APPS_SCRIPT';
+
+// ── ESTAT GLOBAL ──────────────────────────────────────────
+const ESTAT = {
+  rol:              'Carles',    // 'Carles' | 'Familiar' | 'Admin'
+  pantallaActual:   'today',
+  filtrePrioritat:  'tots',
+  filtreResp:       'tots',
+  periodeResum:     'setmana',
+  dayplanElements:  [],          // elements del day plan en construcció
+  dayplanData:      null,        // data del day plan (normalment demà)
+};
+
+// ── UTILITATS DATA ────────────────────────────────────────
+function avuiStr() {
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return dd + '/' + mm + '/' + d.getFullYear();
+}
+
+function demaStr() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return dd + '/' + mm + '/' + d.getFullYear();
+}
+
+function diesSetmana() {
+  const dies = ['diumenge','dilluns','dimarts','dimecres','dijous','divendres','dissabte'];
+  return dies[new Date().getDay()];
+}
+
+function mesNom() {
+  const mesos = ['gener','febrer','març','abril','maig','juny',
+                 'juliol','agost','setembre','octubre','novembre','desembre'];
+  return mesos[new Date().getMonth()];
+}
+
+// ── COMUNICACIÓ AMB EL BACKEND ────────────────────────────
+async function get(action, params = {}) {
+  const url = new URL(SCRIPT_URL);
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  const r = await fetch(url.toString());
+  return r.json();
+}
+
+async function post(body) {
+  const r = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return r.json();
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+function mostrarToast(text, tipus = '') {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.className = 'visible' + (tipus ? ' toast-' + tipus : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = ''; }, 2800);
+}
+
+// ── NAVEGACIÓ ─────────────────────────────────────────────
+function navegarA(screen, btnEl) {
+  // Amaga pantalla actual
+  document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('actiu'));
+
+  // Mostra pantalla nova
+  const el = document.getElementById('screen-' + screen);
+  if (el) el.classList.add('activa');
+  if (btnEl) btnEl.classList.add('actiu');
+
+  ESTAT.pantallaActual = screen;
+
+  // Scroll a dalt
+  document.getElementById('contingut').scrollTop = 0;
+
+  // Carrega dades de la pantalla
+  carregarPantalla(screen);
+}
+
+function carregarPantalla(screen) {
+  switch(screen) {
+    case 'today':       carregarToday();       break;
+    case 'dia':         carregarDia();         break;
+    case 'pendents':    carregarPendents();    break;
+    case 'planificar':  carregarPlanificar();  break;
+    case 'medicacio':   carregarMedicacio();   break;
+    case 'habits':      carregarHabits();      break;
+    case 'desitjos':    carregarDesitjos();    break;
+    case 'resum':       carregarResum();       break;
+    case 'recompenses': carregarRecompenses(); break;
+    case 'config':      carregarConfig();      break;
+  }
+}
+
+// ── MENÚ MÉS ──────────────────────────────────────────────
+function obrirMenuMes(btn) {
+  const menu = document.getElementById('menu-mes');
+  const isObert = menu.style.display === 'block';
+  menu.style.display = isObert ? 'none' : 'block';
+  if (!isObert) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('actiu'));
+    btn.classList.add('actiu');
+  }
+  // Tanca en clicar fora
+  setTimeout(() => {
+    if (!isObert) document.addEventListener('click', tancarMenuMesFora, { once: true });
+  }, 0);
+}
+
+function tancarMenuMesFora(e) {
+  if (!document.getElementById('menu-mes').contains(e.target)) tancarMenuMes();
+}
+
+function tancarMenuMes() {
+  document.getElementById('menu-mes').style.display = 'none';
+}
+
+// ── MODAL PIN ─────────────────────────────────────────────
+let pinActual = '';
+
+function obrirModalPin() {
+  pinActual = '';
+  actualitzarDisplayPin();
+  document.getElementById('pin-error-msg').textContent = '';
+  document.getElementById('modal-pin').classList.add('obert');
+}
+
+function tancarModalPin() {
+  document.getElementById('modal-pin').classList.remove('obert');
+  pinActual = '';
+}
+
+function pinTecla(digit) {
+  if (!digit) return;
+  if (pinActual.length >= 4) return;
+  pinActual += digit;
+  actualitzarDisplayPin();
+  if (pinActual.length === 4) validarPin();
+}
+
+function pinEsborrar() {
+  pinActual = pinActual.slice(0, -1);
+  actualitzarDisplayPin();
+  document.getElementById('pin-error-msg').textContent = '';
+}
+
+function actualitzarDisplayPin() {
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById('pin-d' + i);
+    el.textContent = pinActual.length >= i ? '●' : '';
+    el.classList.toggle('ple', pinActual.length >= i);
+    el.classList.remove('error-pin');
+  });
+}
+
+async function validarPin() {
+  try {
+    const r = await post({ action: 'validate_pin', pin: pinActual });
+    if (r.ok && r.dades && r.dades.acces) {
+      ESTAT.rol = 'Admin';
+      actualitzarRolUI();
+      tancarModalPin();
+      mostrarToast('Sessió admin activa ✅', 'ok');
+      document.getElementById('menu-mes-config').style.display = 'block';
+      document.getElementById('medicacio-admin-wrap').style.display = 'block';
+    } else {
+      [1,2,3,4].forEach(i => document.getElementById('pin-d' + i).classList.add('error-pin'));
+      document.getElementById('pin-error-msg').textContent = 'PIN incorrecte. Torna-ho a provar.';
+      setTimeout(() => { pinActual = ''; actualitzarDisplayPin(); }, 1200);
+    }
+  } catch(e) {
+    document.getElementById('pin-error-msg').textContent = 'Error de connexió. Comprova la xarxa.';
+    pinActual = '';
+    actualitzarDisplayPin();
+  }
+}
+
+function tancarSessioAdmin() {
+  ESTAT.rol = 'Carles';
+  actualitzarRolUI();
+  document.getElementById('menu-mes-config').style.display = 'none';
+  document.getElementById('medicacio-admin-wrap').style.display = 'none';
+  navegarA('today');
+  mostrarToast('Sessió admin tancada', 'avis');
+}
+
+function actualitzarRolUI() {
+  const badge = document.getElementById('rol-badge');
+  const btnA  = document.getElementById('btn-admin');
+  badge.textContent = ESTAT.rol === 'Admin' ? '🛡️ Ferran' : ESTAT.rol;
+  badge.className   = ESTAT.rol === 'Admin' ? 'admin' : '';
+  btnA.classList.toggle('actiu', ESTAT.rol === 'Admin');
+}
+
+// ── FILTRES ───────────────────────────────────────────────
+function filtrarTasques(btn) {
+  document.querySelectorAll('#filtres-prioritat .filtre-btn').forEach(b => b.classList.remove('actiu'));
+  btn.classList.add('actiu');
+  ESTAT.filtrePrioritat = btn.dataset.filtre;
+  renderitzarTasques();
+}
+
+function filtrarResponsabilitat(btn) {
+  document.querySelectorAll('#filtres-responsabilitat .filtre-btn').forEach(b => b.classList.remove('actiu'));
+  btn.classList.add('actiu');
+  ESTAT.filtreResp = btn.dataset.filtreR;
+  renderitzarTasques();
+}
+
+function canviarPeriode(btn) {
+  document.querySelectorAll('[data-periode]').forEach(b => b.classList.remove('actiu'));
+  btn.classList.add('actiu');
+  ESTAT.periodeResum = btn.dataset.periode;
+  carregarResum();
+}
+
+// ── PRIORITAT ─────────────────────────────────────────────
+function prioritatClass(prioritat) {
+  const p = String(prioritat);
+  if (p.includes('🔴') || p.includes('clau'))    return 'p1';
+  if (p.includes('🟠') || p.includes('aviat'))   return 'p2';
+  if (p.includes('🟡') || p.includes('urgent'))  return 'p3';
+  if (p.includes('🔵') || p.includes('pugui'))   return 'p4';
+  return 'p4';
+}
+
+function prioritatBadge(prioritat) {
+  const cls = prioritatClass(prioritat);
+  return `<span class="badge badge-${cls}">${prioritat || '—'}</span>`;
+}
+
+// ── CÀRREGA PANTALLES (stubs — s'ompliran als passos 4-9) ─
+async function carregarToday() {
+  // Capçalera data
+  const ara = new Date();
+  document.getElementById('today-data-gran').textContent =
+    diesSetmana().charAt(0).toUpperCase() + diesSetmana().slice(1) + ', ' +
+    ara.getDate() + ' de ' + mesNom();
+  document.getElementById('header-data').textContent = avuiStr();
+  document.getElementById('planificar-dia-titol').textContent = 'Demà — ' + demaStr();
+
+  // Stubs — s'implementen al Pas 4
+  document.getElementById('today-dayplan-wrap').innerHTML =
+    '<div class="estat-buit"><div class="buit-icon">🗓️</div><div class="buit-text">Day plan buit</div><div class="buit-sub">Planifica aquesta nit a la pantalla Planificar</div></div>';
+  document.getElementById('today-tasques-wrap').innerHTML =
+    '<div class="estat-buit"><div class="buit-icon">📋</div><div class="buit-text">Cap tasca pendent</div></div>';
+}
+
+async function carregarDia() {
+  document.getElementById('dia-tasques-wrap').innerHTML =
+    '<div class="estat-buit"><div class="buit-icon">🔧</div><div class="buit-text">S\'implementa al Pas 4</div></div>';
+}
+
+async function carregarPendents() {
+  document.getElementById('pendents-wrap').innerHTML =
+    '<div class="estat-buit"><div class="buit-icon">🔧</div><div class="buit-text">S\'implementa al Pas 4</div></div>';
+}
+
+async function carregarPlanificar() {
+  document.getElementById('planificar-dia-titol').textContent = 'Demà — ' + demaStr();
+}
+
+async function carregarMedicacio() {
+  ['mati','migdia','nit'].forEach(f => {
+    document.getElementById('med-' + f + '-wrap').innerHTML =
+      '<div class="estat-buit"><div class="buit-text">S\'implementa al Pas 5</div></div>';
+  });
+}
+
+async function carregarHabits() {
+  document.getElementById('habits-wrap').innerHTML =
+    '<div class="estat-buit"><div class="buit-icon">🔧</div><div class="buit-text">S\'implementa al Pas 5</div></div>';
+}
+
+async function carregarDesitjos() {
+  document.getElementById('desitjos-wrap').innerHTML =
+    '<div class="estat-buit"><div class="buit-icon">🔧</div><div class="buit-text">S\'implementa al Pas 6</div></div>';
+}
+
+async function carregarResum() {
+  ['resum-tasques','resum-habits','resum-punts','resum-ratxa'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+  });
+}
+
+async function carregarRecompenses() {
+  document.getElementById('recompenses-wrap').innerHTML =
+    '<div class="estat-buit"><div class="buit-icon">🔧</div><div class="buit-text">S\'implementa al Pas 8</div></div>';
+}
+
+async function carregarConfig() {
+  document.getElementById('config-dades-wrap').innerHTML =
+    '<div class="estat-buit"><div class="buit-text">S\'implementa al Pas 9</div></div>';
+}
+
+// ── STUBS ACCIONS (s'implementen als passos següents) ─────
+function renderitzarTasques()          { /* Pas 4 */ }
+function obrirAfegirTasca()            { mostrarToast('S\'implementa al Pas 4 🔧'); }
+function obrirSeleccioTasquesPendents(){ mostrarToast('S\'implementa al Pas 7 🔧'); }
+function obrirNovaTascaPlanificar()    { mostrarToast('S\'implementa al Pas 7 🔧'); }
+function obrirSeleccioHabits()         { mostrarToast('S\'implementa al Pas 7 🔧'); }
+function desarDayPlan()                { mostrarToast('S\'implementa al Pas 7 🔧'); }
+function obrirAfegirDesig()            { mostrarToast('S\'implementa al Pas 6 🔧'); }
+function obrirGestioMedicacio()        { mostrarToast('S\'implementa al Pas 9 🔧'); }
+
+// ── INICI ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('header-data').textContent = avuiStr();
+  carregarToday();
+});
+
+</script>
+</body>
+</html>
